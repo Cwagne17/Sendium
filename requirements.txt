@@ -1,0 +1,4 @@
+# Install using pip3
+# pip3 install -r requirements.txt
+psutil==5.9.4
+py-cpuinfo==9.0.0
