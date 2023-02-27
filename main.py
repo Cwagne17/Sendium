@@ -17,6 +17,7 @@ import shutil
 import logging
 import ssl
 import smtplib
+import webbrowser
 from smtplib import SMTPAuthenticationError
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -52,6 +53,8 @@ allow_less_secure_app = "https://myaccount.google.com/u/1/lesssecureapps?pli=1&p
 SENDER_EMAIL=""
 PASSWORD=""
 RECIPIENT_EMAIL=""
+
+MESSAGE=""
 
 PUBLIC_IP=""
 OS_NAME_AND_TYPE=""
@@ -97,7 +100,8 @@ def set_machine_information():
     
 
 def build_email_message():
-    return f"""
+    global MESSAGE
+    MESSAGE = f"""
         <html>
             <body>
                 <h1>{OS_NAME_AND_TYPE} - {PUBLIC_IP}</h1>
@@ -159,8 +163,14 @@ def send_email():
         email_message["From"] = SENDER_EMAIL
         email_message["To"] = RECIPIENT_EMAIL
         email_message["Subject"] = "Sendium - System Information"
-        email_message.attach(MIMEText(build_email_message(), "html"))
+        email_message.attach(MIMEText(MESSAGE, "html"))
         smtp.sendmail(SENDER_EMAIL, RECIPIENT_EMAIL, email_message.as_string())
+
+def draft_email():
+    if os.path.exists("email.html"): os.remove("email.html")
+    with open("email.html", "w") as f:
+        f.write(MESSAGE)
+    webbrowser.get("chrome").open("file:///"+os.getcwd()+"/email.html")
 
 def options():
     """Displays the global variables."""
@@ -220,7 +230,7 @@ def handle_input():
         
         if command == "?": output_options()
         elif command == "clear": os.system("clear")
-        elif command == "draft": print("Drafting email...")
+        elif command == "draft": draft_email()
         elif command.startswith("get"):
             split_command = command.split()
             if len(split_command) != 2: print(bcolors.FAIL + bcolors.BOLD + "\nInvalid command. `get` requires 1 argument.\nUsage: `get VARIABLE`\n" + bcolors.ENDC); continue
@@ -254,6 +264,8 @@ To get started type `help` to see a list of commands.
 
 if __name__ == "__main__":
     set_machine_information()
+    
+    build_email_message()
 
     intro()
     
